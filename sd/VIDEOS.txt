@@ -1,0 +1,34 @@
+Videos for the game's links
+===========================
+
+The tiny planets on the episode screen, the planets of the Solar System
+episode, the Pluto popup's "Learn more" and a few others used to open web
+pages. On the Switch they open a popup inside the game about their topic, with
+a "Watch video" button for the video the link went to:
+
+  - when the console is connected to the internet, the video is streamed from
+    YouTube and plays inside the popup (720p; nothing to put here);
+  - without the internet, a copy in this folder plays instead.
+
+A pauses, B stops, the left stick (or the D-pad) goes 10 s back or on.
+The main menu's trailer plays the 2012 launch trailer, and Toons a random
+episode of Angry Birds Toons' first season (both streamed only).
+
+For offline copies, name each file after its topic:
+  mercury.mp4 venus.mp4 earth.mp4 iss.mp4 moon.mp4 mars.mp4 asteroid_belt.mp4
+  jupiter.mp4 europa.mp4 saturn.mp4 uranus.mp4 neptune.mp4 pluto.mp4 comet.mp4
+                     the Rocket Science Show episodes (Solar System episode)
+  newhorizons.mp4    New Horizons (the Pluto popup's "Learn more")
+  nasa.mp4           the space station tiny planet: NASA's "Angry Birds in
+                     Space" (2012), Don Pettit aboard the ISS
+  curiosity.mp4      the Mars rover tiny planet: "Driving Miss Curiosity"
+  europamoon.mp4     the Europa tiny planet (it shows the Europa episode)
+
+The links, for reference:
+  Rocket Science Show  https://www.youtube.com/playlist?list=PLTR8zrKWyBqj_Vq6WaMtVf3hz-sqLc7yE
+  NASA, ISS            https://www.youtube.com/watch?v=PW8et34Uxt8
+  Driving Miss Curiosity https://www.youtube.com/watch?v=zxV7-5Utai0
+
+The file: MP4 with H.264 (or MPEG-4 Part 2) video and AAC (or MP3) sound;
+1280x720 or smaller. The port ships no videos. The game reads this folder when
+it starts: add files with the game closed.

@@ -1,0 +1,40 @@
+Angry Birds Orbital Escapade's worlds
+=====================================
+
+Orbital Escapade is ShadowBird81's mod of the PC edition of Angry Birds Space.
+The port can add its two new worlds to the game as two more planets on the
+episode screen, after Danger Zone: Vege-toids and Omelettification (29 levels
+and a boss each), with the prototype birds they are played with -- the Iron,
+Pink, Boomerang, Black Hole and Drill birds -- in those two worlds only.
+
+Download the mod from https://gamejolt.com/games/OrbitalEscapade/1016788,
+extract it on a computer, and copy its "data" folder (the one next to
+AngryBirdsOrbitalEscapade.exe) here. Copying the whole extracted folder into
+/switch/abspace_nx works too: the game finds the mod's data folder by what is
+in it (its scripts and the levels/theme1 and theme2 folders), whatever the
+folders are called.
+
+Nothing is converted or copied: the game reads the mod where it is. Without
+the mod the game is unchanged. The port ships none of the mod.
+
+The mod is the whole PC game (137 MB); the two worlds use about 22 MB of it.
+After the first start with it (a moment at the main menu), the port removes
+the rest of it from this folder: pictures, sounds and level folders the two
+worlds do not use. Keep your own copy of the mod elsewhere if you want it
+whole.
+
+Nothing of the game itself changes either: its worlds, main menu, banner and
+loading screens stay as they are, and the mod's changes to the game's own
+birds and blocks (Big Red's shockwave when it lands; the Black and Ice
+birds' power still usable for 2.5 s after a hit; weaker gravity fields,
+bigger portals) only apply in the mod's two worlds.
+
+The powers: the Iron bird shoots an egg where you tap; the Pink bird's beam
+lifts what it hits (tap again to drop it); the Boomerang bird swings round
+(tap again to send it back); the Black Hole bird opens a black hole (tap
+again to come out); the Drill bird stops, bores in and explodes. With the
+controller, A taps the middle of the screen, where the camera keeps the
+flying bird: the Iron and Pink birds aim straight ahead. The touchscreen or
+the hand cursor (R) aims them anywhere.
+
+debug.log lines starting with [orbital] say what was added and any error.
