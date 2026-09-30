@@ -246,6 +246,7 @@ void abs_video_stop(void);                /* any thread */
 void abs_video_set_rect(float x, float y, float w, float h); /* the popup's (w <= 0: full screen) */
 /* A pause, B stop, left stick / D-pad left and right: 10 s back / on */
 void abs_video_input(uint64_t down, uint64_t held, float lsx);
+int abs_video_tap(float x, float y); /* a tap on the picture pauses: 1; outside it: 0, the game's */
 void abs_video_draw(void);                /* render thread, before the present */
 /* Audio: the video's samples instead of the game's (abs_audio.c asks). */
 int abs_video_mix(int16_t *out, int frames, int rate);

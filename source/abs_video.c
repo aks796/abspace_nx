@@ -17,7 +17,8 @@
  * script). The sound goes through a ring and replaces the game's in its
  * output (abs_audio.c asks abs_video_mix).
  *
- * A pauses, B stops, the left stick (or the D-pad) goes 10 s back or on:
+ * A pauses, B stops (on the touchscreen: a tap on the picture pauses, the
+ * popup's X stops), the left stick (or the D-pad) goes 10 s back or on:
  * the split streams are fetched from wherever the reader is, so a jump ahead
  * fetches that part first; while the download is behind, the clock waits
  * (a spinner over the picture) instead of running on. A time bar shows
@@ -50,6 +51,7 @@ int abs_video_active(void) { return 0; }
 void abs_video_stop(void) {}
 void abs_video_set_rect(float x, float y, float w, float h) { (void)x, (void)y, (void)w, (void)h; }
 void abs_video_input(uint64_t down, uint64_t held, float lsx) { (void)down, (void)held, (void)lsx; }
+int abs_video_tap(float x, float y) { (void)x, (void)y; return 0; }
 void abs_video_draw(void) {}
 int abs_video_mix(int16_t *out, int frames, int rate) {
   (void)out, (void)frames, (void)rate;
@@ -985,6 +987,29 @@ void abs_video_input(uint64_t down, uint64_t held, float lsx) {
     next = now + armNsToTicks(dir != last ? 450000000ull : 220000000ull);
   }
   last = dir;
+}
+
+/* The box the video plays in: the popup's, or the whole screen. */
+static void video_box(float *x, float *y, float *w, float *h) {
+  const int boxed = V.rw > 0 && V.rh > 0;
+  *x = boxed ? V.rx : 0, *y = boxed ? V.ry : 0;
+  *w = boxed ? V.rw : (float)abs_surface_w(), *h = boxed ? V.rh : (float)abs_surface_h();
+}
+
+/* A tap on the picture: pause / play (as A does); 1. Outside the video's
+ * box: 0, the game's (abs_input.c passes it on: the popup's X stops the
+ * video, as B does, and the rest of the popup takes no notice). */
+int abs_video_tap(float x, float y) {
+  float bx, by, bw, bh;
+  video_box(&bx, &by, &bw, &bh);
+  if (x < bx || x >= bx + bw || y < by || y >= by + bh)
+    return 0;
+  const int s = V.state;
+  if (s == ABS_VS_PLAYING || s == ABS_VS_PAUSED) {
+    set_pause(s == ABS_VS_PLAYING);
+    show_bar();
+  }
+  return 1;
 }
 
 static void finish(int state, const char *why) {

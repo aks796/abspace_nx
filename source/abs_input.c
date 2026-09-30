@@ -942,8 +942,12 @@ void abs_input_update(void) {
       syn_up();
       S.aiming = S.held = S.returning = S.pending_up = 0;
     }
-    if (abs_video_active())
-      abs_video_input(down | (tap ? k_a : 0), held, lsx);
+    if (abs_video_active()) {
+      abs_video_input(down, held, lsx);
+      /* a tap outside the picture goes to the game: the popup's X */
+      if (tap && !abs_video_tap(tx, ty))
+        syn_tap(tx, ty);
+    }
     else if (abs_extras_active())
       abs_extras_input(down, held, lsx, lsy, tap, tx, ty);
     else
