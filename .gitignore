@@ -1,0 +1,25 @@
+# build outputs
+/build/
+/build-ffmpeg/
+/build-ffmpeg-host/
+/build-mbedtls/
+/portlibs32/
+/SD_CARD/
+/SD_CARD.zip
+*.elf
+*.nsp
+*.nro
+*.nacp
+*.npdm
+*.nso
+/abspace_nx.build
+/launcher/build/
+/launcher/romfs/
+# logs from a console (they carry the console's install id): not shared
+/debug/
+# no game files, ever: the player supplies their own APK and mods
+*.apk
+/mods/
+.DS_Store
+# the GitHub copy (tools/export_github.sh)
+/github_repo/
