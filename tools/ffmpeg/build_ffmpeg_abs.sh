@@ -5,9 +5,9 @@
 # libavformat / libavcodec / libavutil for the AArch32 Switch wrapper
 # (libnx32). NEON on, no threads, no programs. LGPL (no --enable-gpl).
 #
-# The same recipe as build_ffmpeg32.sh in github.com/aks796/ffmpeg32, with the
-# H.264 decoder added (most MP4 videos are H.264). The FFmpeg source is its
-# unpacked ffmpeg-7.1.1, read only; everything built lands in this project:
+# The same recipe as ../../../../ffmpeg32/build_ffmpeg32.sh (PvZ's), with the
+# H.264 decoder added (most MP4 videos are H.264). The FFmpeg source is that
+# folder's ffmpeg-7.1.1, read only; everything built lands in this project:
 #   build-ffmpeg/          the build tree
 #   portlibs32/lib, include  where the Makefile finds it (ABS_VIDEO=1)
 # Run from abspace_nx/ (tools/ffmpeg/build.sh does the docker run).

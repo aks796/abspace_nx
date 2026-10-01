@@ -1,6 +1,6 @@
 /* test_orbital.c -- source/abs_orbital.c on a PC, against the player's copy of
  * the mod and the game's assets unpacked from the APK:
- *   cc -I tools/host_shim -I source -I <mbedtls>/include tools/test_orbital.c \
+ *   cc -I tools/host_shim -I source -I runtime/source -I <mbedtls>/include tools/test_orbital.c \
  *      source/abs_orbital.c source/abs_png.c <mbedtls libs> -lz -o test_orbital
  *   ./test_orbital <root with orbital/data> <unpacked APK assets dir> <out dir>
  * Writes out/level.bin (a wrapped level: checked by the caller with openssl +

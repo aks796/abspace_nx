@@ -1,7 +1,7 @@
 /* test_net.c -- the port's HTTP/TLS client and YouTube resolver on a PC:
  * resolves a video and fetches its streams as abs_video.c does (1 MiB ranges
  * for the split 720p files, one request for the 360p file).
- *   cc -I source -I <mbedtls>/include -I tools/mbedtls \
+ *   cc -I source -I runtime/source -I <mbedtls>/include -I tools/mbedtls \
  *      '-DMBEDTLS_USER_CONFIG_FILE=<abs_mbedtls_user_config.h>' \
  *      tools/test_net.c source/abs_net.c source/abs_json.c source/abs_yt.c <libmbedtls...>
  *   ./a.out CL15siZ2pv4 */

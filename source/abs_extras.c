@@ -388,7 +388,7 @@ void abs_extras_draw(void) {
     abs_ov_text(px + gap, y, mpx, 0xe4ecffffu, lines[i]);
   if (hint > 0) {
     char h[160];
-    snprintf(h, sizeof h, "Video: put %s in " DCR_ROOT_PATH "/videos/ to watch it here.", vname);
+    snprintf(h, sizeof h, "Video: put %s in " PORT_ROOT_PATH "/videos/ to watch it here.", vname);
     abs_ov_text(px + gap, py + ph - gap - bpx * 2.0f - hint, mpx * 0.85f, 0x9fb4e0ffu, h);
   }
   /* buttons, right-aligned: [Watch the video] [Back] */

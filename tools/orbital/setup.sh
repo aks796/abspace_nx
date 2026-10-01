@@ -52,7 +52,7 @@ M="$REPO/build-mbedtls/mbedtls-3.6.2"
 mkdir -p hmbed
 for f in aes aesni aesce platform_util; do cc -O1 -c -I "$M/include" "$M/library/$f.c" -o "hmbed/$f.o"; done
 ar rcs hmbed/libhmbed.a hmbed/*.o
-cc -O1 -g -I "$REPO/tools/host_shim" -I "$REPO/source" -I "$M/include" -I lua51f "$HERE/orbhost.c" \
+cc -O1 -g -I "$REPO/tools/host_shim" -I "$REPO/source" -I "$REPO/runtime/source" -I "$M/include" -I lua51f "$HERE/orbhost.c" \
   "$REPO/source/abs_orbital.c" "$REPO/source/abs_png.c" lua51f/liblua.a hmbed/libhmbed.a -lz -o orbhost
 ln -sfn "$ASSETS" assets
 echo "ready: cd $WORK && QUIET=1 ./orbhost $MODROOT $ASSETS orbtest.lua $REPO/source/abs_orbital.lua"

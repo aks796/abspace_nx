@@ -88,22 +88,22 @@ or D-Pad 10 seconds back or forward.
 ### Requirements
 
 * Docker
+* [android32](https://github.com/aks796/android32), the runtime shared by the
+  32-bit ports, at `runtime/` (a git submodule: `git clone --recursive`)
 * `ghcr.io/vita2hos/devcontainer/vita2hos` (devkitARM and libnx32) for the
   32-bit program
 * `devkitpro/devkita64` for the launcher
 * [libnx32](https://github.com/aks796/libnx32) 4.12.0 or newer, the 32-bit
-  libnx. `build.sh` mounts its `prefix/` from a libnx32 checkout next to
-  this one, `../libnx32/prefix` (`DCR_LIBNX32` names another)
+  libnx. The build finds its `prefix/` next to this folder
+  (`../libnx32/prefix`), or where `DCR_LIBNX32` says
 * [mesa32](https://github.com/aks796/mesa32), Mesa and libdrm_nouveau: its
   `lib/` and `include/` copied into `portlibs32/`
-* The FFmpeg 7.1.1 source, for the video decoders (optional):
-  [ffmpeg32](https://github.com/aks796/ffmpeg32)'s build script downloads it
+* The FFmpeg 7.1.1 source, for the video decoders (optional)
 
 libnx32 and mesa32 have prebuilt releases, which work as well as building them.
 
 Build the libraries once. mbedTLS comes from the tarball in `tools/mbedtls/`;
-FFmpeg reads an unpacked ffmpeg-7.1.1, by default the one in an ffmpeg32 checkout
-next to this one (`FFMPEG_SRC` names another):
+FFmpeg reads an unpacked ffmpeg-7.1.1 (`FFMPEG_SRC` names it):
 
 ```bash
 tools/mbedtls/build.sh

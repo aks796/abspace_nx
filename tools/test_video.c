@@ -4,7 +4,7 @@
  * input -- with the drawing counted instead of shown. A script of seeks and
  * pauses runs and each is checked against where the pictures went.
  *   H=build-ffmpeg-host/prefix M=<host mbedtls>
- *   cc -O2 -DABS_VIDEO=1 -I tools/host_shim -I source -I $H/include -I $M/include -I tools/mbedtls \
+ *   cc -O2 -DABS_VIDEO=1 -I tools/host_shim -I source -I runtime/source -I $H/include -I $M/include -I tools/mbedtls \
  *      '-DMBEDTLS_USER_CONFIG_FILE=<abs_mbedtls_user_config.h>' tools/test_video.c source/abs_net.c \
  *      source/abs_json.c source/abs_yt.c $H/lib/libavformat.a $H/lib/libavcodec.a $H/lib/libavutil.a <mbedtls libs>
  *   ./a.out CL15siZ2pv4          (a YouTube id)   ./a.out file.mp4   (a file) */

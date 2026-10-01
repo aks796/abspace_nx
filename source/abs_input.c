@@ -62,6 +62,7 @@
 
 #include "abs.h"
 #include "dcr_config.h"
+#include "rt_pad.h"
 #include "util.h"
 
 #define ACT_DOWN 0
@@ -217,7 +218,7 @@ static void toast(const char *msg) {
 
 /* ------------------------------------------------------------- setup */
 void abs_input_init(void) {
-  padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+  rt_pad_setup(RT_PAD_MAX_PLAYERS, 1); /* one player, standard styles (rt_pad.c) */
   padInitializeDefault(&g_pad);
   hidInitializeTouchScreen();
   N.input = (fn_input)abs_native("Java_com_rovio_fusion_MyInputHandler_nativeInput");

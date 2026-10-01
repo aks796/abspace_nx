@@ -23,3 +23,8 @@
 .DS_Store
 # the GitHub copy (tools/export_github.sh)
 /github_repo/
+
+# the android32 runtime: a symlink while developing (a submodule in the GitHub export)
+/runtime
+# development links in a worktree
+/portlibs32

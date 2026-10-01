@@ -31,7 +31,7 @@
 
 const char *dcr_game_root(void); /* main.c */
 
-#define PKG DCR_PACKAGE
+#define PKG PORT_PACKAGE
 #define A_CACHE "/data/data/" PKG "/cache/"
 #define H(fn) static jvalue fn(JObj *self, const jvalue *a, const JMethod *m)
 

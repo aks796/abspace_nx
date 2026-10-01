@@ -5,6 +5,11 @@ armeabi-v7a) on a Switch with Atmosphère. The whole process is 32-bit (AArch32)
 game's own `libAngryBirdsSpace.so` and supplies the bionic, JNI, Android, EGL/GLES and audio
 services that library expects. It ships no game code or data.
 
+The shared runtime files (loader, bionic, JNI core, GL glue, clocks, paths, setup, config
+engine, crash handler, watchdog, launcher) now come from the android32 runtime at `runtime/`
+(commit `81b772b`); where the notes below cite them under `source/`, they are in
+`runtime/source/`. The game's own files (`abs_*`) stay in `source/`.
+
 Below: what the 32-bit libraries need fixed, what was specific to this game, and advice for other
 32-bit ports. Paths are relative to this repository unless they name a library file. "Hardware"
 means runs on a Switch with Atmosphère (September 2026, from `debug.log`).
@@ -13,35 +18,34 @@ means runs on a Switch with Atmosphère (September 2026, from `debug.log`).
 
 ### Status (2026-09-30)
 
-The port is built against the libnx32 fork at `41b61f92` (libnx 4.12.0, switchbrew master
-`9b4f3b29` merged; [github.com/aks796/libnx32](https://github.com/aks796/libnx32)) and mesa32,
-devkitPro's Mesa with the 32-bit fixes on top
-([github.com/aks796/mesa32](https://github.com/aks796/mesa32)). Commit `c6c53d20` fixed most of
-the libnx32 entries below. The port keeps its own hardware-proven code for each of them; its
+The port is built against the libnx32 fork at `05400466` (libnx 4.12.0, switchbrew master
+`217f611a` merged; [github.com/aks796/libnx32](https://github.com/aks796/libnx32)) and the gfx32
+Mesa with its `patches/gfx32-*.patch` ([github.com/aks796/mesa32](https://github.com/aks796/mesa32)). Commit `88ece201` fixed most
+of the libnx32 entries below. The port keeps its own hardware-proven code for each of them; its
 overrides still take precedence at link time (checked in the link map).
 
 | Entry | Library status | This port |
 | --- | --- | --- |
-| Short enums in IPC data | Fixed, `cb01ef9f` | uses the fork |
-| `svcSetThreadCoreMask` u32 mask | Fixed, `c6c53d20` (u64) | keeps `dcr_thread_set_cores` |
-| `svcGetThreadCoreMask` stack | Fixed, `c6c53d20` | keeps `dcr_thread_get_cores` |
-| `svcWaitForAddress` / `svcSignalToAddress` | Added, `c6c53d20` (int32 value in r2) | keeps its own, with the self-test |
-| `svcGetThreadContext3` | Added, `c6c53d20` | keeps its asm in `watchdog.c` |
-| AArch32 exception entry | Added, `c6c53d20` (weak; optional `__libnx_exception_handler32`) | keeps `exc32.S` |
-| `armICacheInvalidate` | Implemented, `c6c53d20` (R/RX flip) | keeps `code_flush.c` |
-| audout/audin descriptor, u64 tags | Fixed, `c6c53d20` | keeps its own IPC in `abs_audio.c` |
-| virtmem bounds and search region | Fixed, `c6c53d20` | keeps `nx32_virtmem.c` |
-| `__libnx_initheap` | Fixed, `c6c53d20` (clamped, retries) | keeps `nx_init.c` |
-| Default window's display | `nwindowGetDefaultDisplay()`, `c6c53d20` | keeps its `nwindowGetDefault` override |
-| Own process handle | `envAcquireOwnProcessHandle()`, `c6c53d20` | keeps `selfproc.c` |
-| fsdev open-for-writing error | Mapped to EBUSY, `c6c53d20` | keeps routing `stat`/`truncate` through the open handle |
-| `timespec_get` | Weak definition, `c6c53d20` | its own in `host_compat.c` wins |
-| `.rel.dyn` in `switch32.ld` | Fixed, `c6c53d20` | keeps `dcr32.ld` |
+| Short enums in IPC data | Fixed, `8cb7f34b` | uses the fork |
+| `svcSetThreadCoreMask` u32 mask | Fixed, `88ece201` (u64) | keeps `dcr_thread_set_cores` |
+| `svcGetThreadCoreMask` stack | Fixed, `88ece201` | keeps `dcr_thread_get_cores` |
+| `svcWaitForAddress` / `svcSignalToAddress` | Added, `88ece201` (int32 value in r2) | keeps its own, with the self-test |
+| `svcGetThreadContext3` | Added, `88ece201` | keeps its asm in `watchdog.c` |
+| AArch32 exception entry | Added, `88ece201` (weak; optional `__libnx_exception_handler32`) | keeps `exc32.S` |
+| `armICacheInvalidate` | Implemented, `88ece201` (R/RX flip) | keeps `code_flush.c` |
+| audout/audin descriptor, u64 tags | Fixed, `88ece201` | keeps its own IPC in `abs_audio.c` |
+| virtmem bounds and search region | Fixed, `88ece201` | keeps `nx32_virtmem.c` |
+| `__libnx_initheap` | Fixed, `88ece201` (clamped, retries) | keeps `nx_init.c` |
+| Default window's display | `nwindowGetDefaultDisplay()`, `88ece201` | keeps its `nwindowGetDefault` override |
+| Own process handle | `envAcquireOwnProcessHandle()`, `88ece201` | keeps `selfproc.c` |
+| fsdev open-for-writing error | Mapped to EBUSY, `88ece201` | keeps routing `stat`/`truncate` through the open handle |
+| `timespec_get` | Weak definition, `88ece201` | its own in `host_compat.c` wins |
+| `.rel.dyn` in `switch32.ld` | Fixed, `88ece201` | keeps `dcr32.ld` |
 | `-z text` / non-PIC target libraries, `__nx_dynamic` | Open | `crt0_reloc.c` |
 | Soft-float newlib libm, `setjmp` without d8-d15 | Open | `bionic_math.c`, `bionic_setjmp.S` |
 | `__appInit` aborting on a failed service | Open | `nx_init.c` |
 | miniz greedy `inflate` | Open | `bionic_zlib.c` |
-| Mesa `eglQuerySurface` size | Fixed in mesa32, `4e41d89f` | `b_eglQuerySurface` kept (now optional) |
+| Mesa `eglQuerySurface` size | Fixed in the gfx32 patches | `b_eglQuerySurface` kept (now optional) |
 | Mesa pbuffers; console and EGL buffer slots | Open | window surfaces only; console retired before EGL |
 | FFmpeg h264 without hevc | Open (library packaging) | stub in `abs_video.c` |
 
@@ -56,9 +60,9 @@ Mesa's work queues can now start their threads.
 Each entry gives the problem, what this port does, and what should change upstream. The libraries:
 devkitARM and libnx32 from the vita2hos image (`ghcr.io/vita2hos/devcontainer/vita2hos`; its
 libnx32 is vita2hos/libnx at 721c977, "AArch32 support"); the patched libnx32 fork (branch
-`master`, at cb01ef9f when these entries were written; now `41b61f92`, see the status above;
-installed into `prefix/` by its `build.sh`);
-Mesa 20.1.0-rc3 and libdrm_nouveau 1.0.1 (mesa32's `build.sh` installs into its `prefix/`,
+`thirtytwo`, at 8cb7f34b when these entries were written; now `05400466`, see the status above;
+installed into `prefix/` by `build_libnx32.sh`);
+Mesa 20.1.0-rc3 and libdrm_nouveau 1.0.1 (`gfx32/build_gfx32.sh` installs into `gfx32/prefix`,
 copied into `portlibs32/`); FFmpeg 7.1.1 (`tools/ffmpeg/`) and mbedTLS 3.6.2 (`tools/mbedtls/`),
 which install into `portlibs32/`.
 
@@ -67,9 +71,8 @@ which install into `portlibs32/`.
 - **Enums are short.** arm-none-eabi GCC uses `-fshort-enums` by default (the ARM EABI rule).
   Horizon's services use the 64-bit layout, where an enum is 4 bytes. Any struct field or raw IPC
   argument of an enum type that reaches the system is wrong. This causes the libnx32, Mesa and
-  FFmpeg entries below. Port: the patched libnx32; a Mesa fix (mesa32 `099a02a3`); FFmpeg and
-  `source/abs_video.c` built with `-fno-short-enums` (both enum sizes are linked, hence
-  `-Wl,--no-enum-size-warning`).
+  FFmpeg entries below. Port: the patched libnx32; a Mesa patch; FFmpeg and `source/abs_video.c`
+  built with `-fno-short-enums` (both enum sizes are linked, hence `-Wl,--no-enum-size-warning`).
   Upstream: pick one rule and document it: short enums with fixed-width types wherever data
   crosses IPC, shared memory or applet storage (the fork's approach), or `-fno-short-enums` for
   libnx32 and every portlib.
@@ -85,7 +88,7 @@ which install into `portlibs32/`.
 
 ### libnx32
 
-- **IPC data sized by an enum.** Fixed in the fork, commit cb01ef9f ("AArch32: IPC data that
+- **IPC data sized by an enum.** Fixed in the fork, commit 8cb7f34b ("AArch32: IPC data that
   depended on the size of an enum"):
   - `hidSetSupportedNpadIdType` (called by `padConfigureInput`) and
     `hidGetNpadOfHighestBatteryLevel` sent `HidNpadIdType` lists one byte per id, where hid reads
@@ -217,13 +220,12 @@ which install into `portlibs32/`.
   mbstate_t 8 vs 4 (`source/bionic_wchar.c`), LC_ALL 0 vs 6 (`source/bionic_core.c`) and bionic's
   84-byte FILE (`source/bionic_stdio.c`).
 
-### Mesa and libdrm_nouveau (mesa32)
+### Mesa and libdrm_nouveau (gfx32)
 
 devkitPro ships these for AArch64 only. The 32-bit build is
-[github.com/aks796/mesa32](https://github.com/aks796/mesa32), a fork of devkitPro's Mesa (branch
-`switch-20.1.0-rc3`). Its `build.sh` builds libdrm_nouveau 1.0.1 and Mesa 20.1.0-rc3: devkitPro's
-branch with fixes on top, among them `4dbba376` (glapi: build with Python 3.9+, the `getchildren()`
-fix in `gl_XML.py` and `glX_XML.py`) and `099a02a3` (AArch32: don't depend on int-sized enums). The
+[github.com/aks796/mesa32](https://github.com/aks796/mesa32). `gfx32/build_gfx32.sh` builds libdrm_nouveau 1.0.1 and
+Mesa 20.1.0-rc3 with devkitPro's `switch-mesa-20.1.0-5.patch`, two generator fixes for current
+Python (`getchildren()` in `gl_XML.py` and `glX_XML.py`) and `dcr-mesa-short-enums.patch`. The
 port links `-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lstdc++`.
 
 - **`mesa_format` is 16 bits with short enums.** `_mesa_format_from_format_and_type` can return a
@@ -231,7 +233,7 @@ port links `-lEGL -lGLESv2 -lglapi -ldrm_nouveau -lstdc++`.
   GL_RGBA/GL_UNSIGNED_BYTE upload crashed in `st_choose_matching_format` (hardware, in the
   Unity-based sister port). An enum-typed `opcode:10` bitfield in `tgsi_opcode_info` had the same
   issue.
-  - Port: `099a02a3` keeps the value in `uint32_t` in `st_choose_matching_format` (st_format.c),
+  - Port: the patch keeps the value in `uint32_t` in `st_choose_matching_format` (st_format.c),
     `_mesa_tex_format_from_format_and_type` (glformats.c) and
     `_mesa_format_matches_format_and_type` (formats.c), makes the bitfield `unsigned`
     (tgsi_info.h) and fixes one prototype (tgsi_ureg.c). `texture_test` in `source/gl_mesa.c`
@@ -475,7 +477,14 @@ No bugs found. `tools/mbedtls/abs_mbedtls_user_config.h`: TLS 1.2 client only; `
   counter, and engines signal without the mutex. `source/bionic_pthread.c` builds bionic's
   semantics on WaitForAddress, with 250 ms waits as a backstop.
 - The system tick runs during sleep and the HOME menu; `source/bionic_time.c` subtracts suspended
-  time from `CLOCK_MONOTONIC`. Horizon has no signals; `source/bionic_signal.c` records handlers
+  time from `CLOCK_MONOTONIC`.
+- libnx's default focus mode (`AppletFocusHandlingMode_SuspendHomeSleep`) freezes the process for
+  the HOME menu and sleep and sends no focus messages, so the focus hook never ran on hardware.
+  `source/abs_boot.c` sets `SuspendHomeSleepNotify` before `appletHook`. The clocks also remove a
+  freeze without the messages: a watch thread (priority 0x2C) reads the monotonic clock every
+  100 ms, and any reading over 2 s after the previous one drops the gap (less 100 ms) before
+  returning. REALTIME stays wall-clock time. The watchdog ignores a 1 s sleep that took over 3 s.
+  Found by the Asphalt 8 Retry port (a first frame after waking that "took" 79 minutes). Horizon has no signals; `source/bionic_signal.c` records handlers
   and delivers nothing.
 
 ### Debugging

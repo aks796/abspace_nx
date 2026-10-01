@@ -38,7 +38,9 @@
 #include "error.h"
 #include "gl_layer.h"
 #include "jni.h"
+#include "rt_applet.h"
 #include "util.h"
+#include "watchdog.h"
 
 void dcr_watchdog_start(void);
 void dcr_boost_poll(void);
@@ -51,7 +53,7 @@ int b_pthread_create(b_pthread_t *out, const b_pthread_attr_t *attr, void *(*sta
 int b_pthread_attr_init(b_pthread_attr_t *a);
 int b_pthread_attr_setstacksize(b_pthread_attr_t *a, size_t s);
 
-#define A_FILES "/data/data/" DCR_PACKAGE "/files"
+#define A_FILES "/data/data/" PORT_PACKAGE "/files"
 #define NA_ "Java_com_rovio_fusion_NativeApplication_"
 
 /* ------------------------------------------------------------ natives */
@@ -74,13 +76,13 @@ static struct {
 
 static JObj *g_native_app; /* the NativeApplication object natives are called on */
 static int g_w, g_h, g_mt;
-static volatile int g_exit, g_game_quit, g_focused = 1, g_focus_changed, g_started;
+static volatile int g_game_quit;
 static volatile int g_resumed; /* NativeState.RENDER_READY */
 
-int abs_surface_w(void) { return g_w ? g_w : DCR_FORCE_SCREEN_W; }
-int abs_surface_h(void) { return g_h ? g_h : DCR_FORCE_SCREEN_H; }
+int abs_surface_w(void) { return g_w ? g_w : RT_SCREEN_W; }
+int abs_surface_h(void) { return g_h ? g_h : RT_SCREEN_H; }
 int abs_is_multithreaded(void) { return g_mt; }
-void abs_request_exit(void) { g_exit = 1; }
+void abs_request_exit(void) { rt_request_exit(); }
 
 static void *need(const char *sym) {
   void *p = abs_native(sym);
@@ -91,7 +93,6 @@ static void *need(const char *sym) {
 
 /* For the watchdog: frames presented, and whether a stop is expected. */
 uint64_t dcr_boot_frames(void) { return dcr_gl_frames(); }
-int dcr_boot_in_focus(void) { return g_focused && g_started && !g_exit; }
 
 /* ------------------------------------------- work for the update thread */
 /* Globals.runOnGLThread / runOnAppThread, and the MultiThreadWrapper's queue:
@@ -226,42 +227,17 @@ static void on_update_thread(void (*fn)(void), int clear) {
 }
 
 /* ------------------------------------------------------------- lifecycle */
-static AppletHookCookie g_hook;
-
-static void on_applet(AppletHookType type, void *param) {
-  static const char *const names[] = {"focus state", "operation mode", "performance mode",
-                                      "EXIT REQUEST", "resume", "capture button",
-                                      "screenshot taken", "request to display"};
-  if (type == AppletHookType_OnExitRequest)
-    debugPrintf("[applet] the system asked the game to close\n");
-  else if ((unsigned)type < sizeof names / sizeof names[0])
-    debugPrintf("[applet] %s (focus %d, mode %d)\n", names[type], (int)appletGetFocusState(),
-                (int)appletGetOperationMode());
-  if (type == AppletHookType_OnFocusState || type == AppletHookType_OnOperationMode) {
-    int focused = appletGetFocusState() == AppletFocusState_InFocus;
-    if (focused != g_focused) {
-      g_focused = focused;
-      g_focus_changed = 1;
-    }
-  }
+/* HOME, sleep, an overlay (rt_applet.c calls these from the frame loop's
+ * rt_applet_poll; it then writes out the log ring and stops the game's
+ * clocks, and starts them again before port_focus_gained). */
+void port_focus_lost(void) {
+  abs_audio_pause(1);
+  on_update_thread(do_pause, 1);
 }
 
-static void apply_focus(void) {
-  if (!g_focus_changed || !g_started)
-    return;
-  g_focus_changed = 0;
-  if (!g_focused) {
-    debugPrintf("[boot] focus lost: onPause\n");
-    abs_audio_pause(1);
-    on_update_thread(do_pause, 1);
-    log_flush_ring();
-    dcr_time_suspend();
-  } else {
-    dcr_time_resume();
-    on_update_thread(do_resume, 0);
-    abs_audio_pause(0);
-    debugPrintf("[boot] focus regained: onResume\n");
-  }
+void port_focus_gained(void) {
+  on_update_thread(do_resume, 0);
+  abs_audio_pause(0);
 }
 
 static void exit_guard(void *arg) {
@@ -347,6 +323,7 @@ int abs_boot_run(void) {
   abs_java_init();
   g_native_app = jni_singleton("com/rovio/fusion/NativeApplication");
   dcr_watchdog_start();
+  rt_watchdog_add_counter("audio writes", abs_audio_mixes);
 
   /* ---- App.onCreate: System.loadLibrary's JNI_OnLoad ---- */
   fn_onload onload = (fn_onload)so_try_find_addr_rx(&g_mod_game, "JNI_OnLoad");
@@ -371,7 +348,6 @@ int abs_boot_run(void) {
   abs_eglw_init();
   abs_input_init();
   dcr_present_hook = present;
-  appletHook(&g_hook, on_applet, NULL);
 
   debugPrintf("[boot] nativeInit(%d, %d)\n", g_w, g_h);
   N.init(g_jni_env, g_native_app, g_w, g_h);
@@ -391,7 +367,6 @@ int abs_boot_run(void) {
     /* MultiThreadWrapper.initialize: nativeInit only (the first
      * onSurfaceChanged sends no resize); later resizes go to this thread */
   }
-  g_started = 1;
   debugPrintf("[boot] activity up; this thread draws the frames now\n");
   log_flush_ring();
 
@@ -399,9 +374,9 @@ int abs_boot_run(void) {
   u64 last_report = armGetSystemTick();
   int launch_done = 0;
   unsigned long quiet_at = 0;
-  while (!g_exit && !g_game_quit && appletMainLoop()) {
-    apply_focus();
-    if (!g_focused) {
+  while (!rt_exit_requested() && !g_game_quit && appletMainLoop()) {
+    rt_applet_poll(); /* focus (port_focus_lost/gained); the watchdog starts at the first */
+    if (!rt_focused()) {
       svcSleepThread(50000000ll);
       continue;
     }
@@ -430,7 +405,7 @@ int abs_boot_run(void) {
 
   /* ---- the way out ---- */
   log_set_quiet(0);
-  appletUnhook(&g_hook);
+  rt_applet_stop(); /* also starts the clocks again if the game was paused: a timed wait in the pause would stall */
   exit_guard_start();
   if (g_game_quit) {
     /* the game ended itself (its quit): doShutdown = nativeDeinit */
@@ -443,8 +418,6 @@ int abs_boot_run(void) {
     /* HOME > Close: onPause (the game saves), then the process ends, as
      * Android's onDestroy kills it */
     debugPrintf("[boot] leaving: onPause, then the process ends\n");
-    if (!g_focused)
-      dcr_time_resume(); /* frozen clocks would stall a timed wait in the pause */
     abs_audio_pause(1);
     on_update_thread(do_pause, 1); /* where the engine runs: the update thread in MT */
     g_game_quit = 1;               /* then that thread stops */
